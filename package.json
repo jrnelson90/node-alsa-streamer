@@ -1,0 +1,23 @@
+{
+  "name": "node-streamer",
+  "version": "1.0.0",
+  "description": "Basic ALSA to FLAC Icecast streaming",
+  "main": "node-streamer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ALSA",
+    "FLAC",
+    "Icecast",
+    "NodeJS",
+    "Audio"
+  ],
+  "author": "Justin Nelson",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "fluent-ffmpeg": "^2.1.2",
+    "libshout-js": "^1.0.1",
+    "node-alsa-cardinfo": "^1.0.3"
+  }
+}
