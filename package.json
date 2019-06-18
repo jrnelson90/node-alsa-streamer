@@ -18,6 +18,7 @@
   "dependencies": {
     "fluent-ffmpeg": "^2.1.2",
     "libshout-js": "^1.0.1",
-    "node-alsa-cardinfo": "^1.0.3"
+    "node-alsa-cardinfo": "^1.0.3",
+    "node-arecord": "file:node_modules/node-arecord"
   }
 }
