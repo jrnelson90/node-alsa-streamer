@@ -6,28 +6,17 @@ const cardName = "hw:CARD=audioinjectorpi,DEV=0";
 const playInfo = cardInfo.get(cardName, cardInfo.PLAYBACK);
 const recInfo = cardInfo.get(cardName, cardInfo.CAPTURE);
 
-// console.log("Audio Injector Playback Info:");
-// console.log(playInfo);
-// console.log("Audio Injector Capture Info:");
-// console.log(recInfo);
-
-// Options is an optional parameter for the constructor call.
-// If an option is not given the default value, as seen below, will be used.
+// If an option is not given, the default value will be used.
 const options = {
-  program: `arecord`, // Which program to use, either `arecord`, `rec`, or `sox`.
-  device: cardName,       // Recording device to use.
-  channels: 2,        // Channel count.
+  device: cardName,                   // Recording device to use.
+  channels: 2,                        // Channel count.
   format: recInfo.sampleFormats[2],   // Encoding type. (only for `arecord`)
-  rate: recInfo.sampleRates[3],        // Sample rate.
-  type: `wav`,        // Format type.
+  rate: recInfo.sampleRates[3],       // Sample rate.
+  type: `wav`,                        // Format type.
 };
 
-// Optional parameter intended for debugging.
-// The object has to implement a log and warn function.
-const logger = console;
-
 // Create an instance.
-let audioIn = new Arecord(options, logger);
+let audioIn = new Arecord(options, console);
 
 ffmpeg(audioIn.start().stream())
   .inputFormat("wav")
@@ -45,6 +34,7 @@ ffmpeg(audioIn.start().stream())
   .run();
 
 process.on("SIGINT", () => {
+  console.log("");
   audioIn.stop();
   process.exit(0);
 });
