@@ -2,17 +2,17 @@ const cardInfo = require('node-alsa-cardinfo');
 const Arecord = require('node-arecord');
 const ffmpeg = require('fluent-ffmpeg');
 const os = require('os');
-const fs = require('fs')
+const fs = require('fs');
 
 const ifaces = os.networkInterfaces();
 
-let configs;
+let hwInfo;
 
 // const cardName = "hw:CARD=audioinjectorpi,DEV=0";
 const cardName = "hw:CARD=Audio,DEV=0";
 
 try {
-  if (!fs.existsSync("./config.json")) {
+  if (!fs.existsSync("./hwInfo.json")) {
     const addrMap = new Map();
     Object.keys(ifaces).forEach(function (ifname) {
       let alias = 0;
@@ -36,28 +36,45 @@ try {
       });
     });
 
-    configs = Object.create(null);
+    hwInfo = Object.create(null);
 
-    configs["addresses"] = [...addrMap.values()];
-    configs["playback"] = cardInfo.get(cardName, cardInfo.PLAYBACK);
-    configs["capture"] = cardInfo.get(cardName, cardInfo.CAPTURE);
+    hwInfo["addresses"] = [...addrMap.values()];
+    hwInfo["playback"] = cardInfo.get(cardName, cardInfo.PLAYBACK);
+    hwInfo["capture"] = cardInfo.get(cardName, cardInfo.CAPTURE);
 
-    fs.writeFileSync("./config.json", JSON.stringify(configs, null, 2));
+    fs.writeFileSync("./hwInfo.json", JSON.stringify(hwInfo, null, 2));
   } else {
-    configs = require("./config.json");
+    hwInfo = require("./hwInfo.json");
   }
 } catch(err) {
   console.error(err);
+  process.exit(1);
 }
 
-console.log(JSON.stringify(configs, null, 2));
+// console.log(JSON.stringify(hwInfo, null, 2));
+let config;
+
+try {
+  if (!fs.existsSync("./config.json")) {
+    config = Object.create(null);
+    console.info("No previous configuration detected, initiating setup");
+
+
+    fs.writeFileSync("./config.json", JSON.stringify(config, null, 2));
+  } else {
+    config = require("./config.json");
+  }
+} catch (err) {
+  console.error(err);
+  process.exit(1);
+}
 
 // If an option is not given, the default value will be used.
 const options = {
   device: cardName,                   // Recording device to use.
   channels: 2,                        // Channel count.
-  format: configs.capture.sampleFormats[2],   // Encoding type. (only for `arecord`)
-  rate: configs.capture.sampleRates[6],       // Sample rate.
+  format: hwInfo.capture.sampleFormats[2],   // Encoding type. (only for `arecord`)
+  rate: hwInfo.capture.sampleRates[6],       // Sample rate.
   type: `wav`,                        // Format type.
 };
 
