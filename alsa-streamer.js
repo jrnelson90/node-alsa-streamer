@@ -10,12 +10,14 @@ const internalIp = require('internal-ip');
 let config;
 
 try {
+  // If config.json file doesn't exits, run setup routine
   if (!fs.existsSync("./config.json")) {
     let hwInfo = Object.create(null);
     config = Object.create(null);
 
     console.info("No previous configuration detected, initiating setup");
 
+    // Get an array of ALSA capture cards
     let soundCards = cp.execSync("arecord -L | grep :CARD")
         .toString('utf8').trim().split("\n");
     hwInfo["soundCards"] = soundCards;
@@ -49,11 +51,13 @@ try {
     console.info("Select number of channels for audio capture:");
     config["channels"] = readline.question("Enter an option (1 - " + hwInfo.capture.channels[0] + "): ").toString();
 
+    // Check for default icecast2 config file location
     if(fs.existsSync("/etc/icecast2/icecast.xml")) {
       const xml = cp.execSync("sudo cat /etc/icecast2/icecast.xml").toString('utf8');
       const icecastSettings = JSON.parse(convert.xml2json(xml,{compact: true, spaces: 2, textKey: "text"}));
       config["icecastPort"] = icecastSettings.icecast["listen-socket"].port.text;
 
+      // If an existing mount point exists, copy its settings for mount address and password
       if(icecastSettings.icecast.mount) {
         config["icecastMnt"] = icecastSettings.icecast.mount["mount-name"].text;
         config["icecastPswd"] = icecastSettings.icecast.mount.password.text;
@@ -95,9 +99,10 @@ const arecordOptions = {
   type: config.pipeAudioCodec,        // Format type.
 };
 
-// Create an instance.
+// Create an new Arecord instance to capture input audio.
 let audioIn = new Arecord(arecordOptions, console);
 
+// Encode uncompressed audio and send it to icecast server via FFMPEG
 ffmpeg(audioIn.start().stream())
     .inputFormat(config.pipeAudioCodec)
     .outputOptions([
@@ -113,11 +118,13 @@ ffmpeg(audioIn.start().stream())
     .output(`icecast://source:${config.icecastPswd}@localhost:${config.icecastPort}${config.icecastMnt}`)
     .run();
 
+// Capture ^C to exit properly
 process.on("SIGINT", () => {
   console.log("");
   audioIn.stop();
   process.exit(0);
 });
 
+// Output current streaming address for other devices on the local network
 console.log(`Streaming live FLAC audio to icecast radio at ` +
     `http://${internalIp.v4.sync()}:${config.icecastPort}${config.icecastMnt}`);
