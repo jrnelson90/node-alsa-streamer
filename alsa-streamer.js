@@ -6,11 +6,10 @@ const fs = require('fs');
 const cp = require("child_process");
 
 const ifaces = os.networkInterfaces();
-let hwInfo;
 let config;
 
 try {
-  if (!fs.existsSync("./hwInfo.json")) {
+  if (!fs.existsSync("./config.json")) {
     const addrMap = new Map();
     Object.keys(ifaces).forEach(function (ifname) {
       let alias = 0;
@@ -34,7 +33,7 @@ try {
       });
     });
 
-    hwInfo = Object.create(null);
+    let hwInfo = Object.create(null);
 
     let soundCards;
     soundCards = cp.execSync("arecord -L | grep :CARD")
@@ -42,27 +41,17 @@ try {
 
     hwInfo["addresses"] = [...addrMap.values()];
     hwInfo["soundCards"] = soundCards;
-    hwInfo["playback"] = cardInfo.get(hwInfo.soundCards[0], cardInfo.PLAYBACK);
-    hwInfo["capture"] = cardInfo.get(hwInfo.soundCards[0], cardInfo.CAPTURE);
+    hwInfo["capture"] = cardInfo.get(hwInfo.soundCards[soundCards.length - 2], cardInfo.CAPTURE);
 
     fs.writeFileSync("./hwInfo.json", JSON.stringify(hwInfo, null, 2));
-  } else {
-    hwInfo = require("./hwInfo.json");
-  }
-} catch(err) {
-  console.error(err);
-  process.exit(1);
-}
 
-try {
-  if (!fs.existsSync("./config.json")) {
     config = Object.create(null);
     console.info("No previous configuration detected, initiating setup");
 
     // TODO: Implement preference input logic
 
     // Write configs to JSON
-    config["soundCard"] = hwInfo.soundCards[0];
+    config["soundCard"] = hwInfo.soundCards[soundCards.length - 2];
     config["sampleRate"] = '48000';
     config["sampleArecordFmt"] = 'S32_LE';
     config["sampleFfmpegFmt"] = 's32';
@@ -98,19 +87,19 @@ const arecordOptions = {
 let audioIn = new Arecord(arecordOptions, console);
 
 ffmpeg(audioIn.start().stream())
-  .inputFormat(config.pipeAudioCodec)
-  .outputOptions([
-    "-acodec " + config.streamAudioCodec,
-    "-compression_level 0",
-    "-frame_size 4096",
-    "-sample_fmt " + config.sampleFfmpegFmt,
-    "-ac " + config.channels,
-    "-ar " + config.sampleRate,
-    "-f " + config.streamContainer,
-    "-content_type audio/" + config.streamContainer,
-  ])
-  .output(`icecast://source:${config.icecastPswd}@localhost:${config.icecastPort}${config.icecastMnt}`)
-  .run();
+    .inputFormat(config.pipeAudioCodec)
+    .outputOptions([
+      "-acodec " + config.streamAudioCodec,
+      "-compression_level 0",
+      "-frame_size 4096",
+      "-sample_fmt " + config.sampleFfmpegFmt,
+      "-ac " + config.channels,
+      "-ar " + config.sampleRate,
+      "-f " + config.streamContainer,
+      "-content_type audio/" + config.streamContainer,
+    ])
+    .output(`icecast://source:${config.icecastPswd}@localhost:${config.icecastPort}${config.icecastMnt}`)
+    .run();
 
 process.on("SIGINT", () => {
   console.log("");
