@@ -6,6 +6,6 @@ via an ADC audio hat on a Raspberry Pi over a local home or office network, this
 for any mono or stereo analog source on any Linux machine that supports ALSA and Icecast.
 
 To date, this has been tested using following Pi audio hats:
-* AudioInjector Stereo
-* Fe-Pi Audio
-* PiSound
+* AudioInjector Stereo (Pi 2 & 3)
+* Fe-Pi Audio (Pi 2 & 3)
+* PiSound (Pi 3)
