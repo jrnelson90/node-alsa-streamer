@@ -1,1 +1,1 @@
-# node-streamer
+# node-alsa-streamer
