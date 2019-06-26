@@ -1,51 +1,24 @@
 const cardInfo = require('node-alsa-cardinfo');
 const Arecord = require('./lib/arecord');
 const ffmpeg = require('fluent-ffmpeg');
-// const os = require('os');
 const fs = require('fs');
 const cp = require("child_process");
 const readline = require('readline-sync');
 const convert = require('xml-js');
 const internalIp = require('internal-ip');
 
-// const ifaces = os.networkInterfaces();
 let config;
 
 try {
   if (!fs.existsSync("./config.json")) {
-    const addrMap = new Map();
-    // Object.keys(ifaces).forEach(function (ifname) {
-    //   let alias = 0;
-    //
-    //   ifaces[ifname].forEach(function (iface) {
-    //     if ('IPv4' !== iface.family || iface.internal !== false) {
-    //       // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
-    //       return;
-    //     }
-    //
-    //     if (alias >= 1) {
-    //       // this single interface has multiple ipv4 addresses
-    //       // console.log(ifname + ':' + alias, iface.address);
-    //       addrMap.set(alias, iface.address);
-    //     } else {
-    //       // this interface has only one ipv4 adress
-    //       // console.log(ifname, iface.address);
-    //       addrMap.set(alias, iface.address);
-    //     }
-    //     ++alias;
-    //   });
-    // });
-
     let hwInfo = Object.create(null);
-
-    let soundCards;
-    soundCards = cp.execSync("arecord -L | grep :CARD")
-        .toString('utf8').trim().split("\n");
-    hwInfo["soundCards"] = soundCards;
-
     config = Object.create(null);
 
     console.info("No previous configuration detected, initiating setup");
+
+    let soundCards = cp.execSync("arecord -L | grep :CARD")
+        .toString('utf8').trim().split("\n");
+    hwInfo["soundCards"] = soundCards;
 
     // Select Audio Card for Input
     console.info("Select an audio card to use as your input source (usually one starting with \'hw:\'):");
@@ -54,17 +27,17 @@ try {
     let soundCardIndex = readline.question("Enter an option (0 - " + (soundCards.length -1) + "): ");
     config["soundCard"] = soundCards[soundCardIndex];
 
-    // Select Capture Parameters
+    // Find Capture Parameters for Selected Sound Card
     hwInfo["capture"] = cardInfo.get(config.soundCard, cardInfo.CAPTURE);
 
-    // Sample Rate
+    // Select Sample Rate for Input
     console.info("Select sample rate for audio capture:");
     hwInfo.capture.sampleRates.forEach((rate, index) => console.info("\t" + index.toString() + " : " + rate));
 
     let sampleRateIndex = readline.question("Enter an option (0 - " + (hwInfo.capture.sampleRates.length -1) + "): ");
     config["sampleRate"] = hwInfo.capture.sampleRates[sampleRateIndex];
 
-    // Sample Format
+    // Sample Format for Input
     console.info("Select sample format for audio capture:");
     hwInfo.capture.sampleFormats.forEach((format, index) => console.info("\t" + index.toString() + " : " + format));
 
@@ -72,12 +45,12 @@ try {
     config["sampleArecordFmt"] = hwInfo.capture.sampleFormats[sampleFormatIndex];
     config["sampleFfmpegFmt"] = config.sampleArecordFmt.toString().split("_")[0].toLowerCase();
 
-    // Channels
+    // Channels for Input
     console.info("Select number of channels for audio capture:");
     config["channels"] = readline.question("Enter an option (1 - " + hwInfo.capture.channels[0] + "): ").toString();
 
     if(fs.existsSync("/etc/icecast2/icecast.xml")) {
-      const xml = fs.readFileSync('/etc/icecast2/icecast.xml', 'utf8');
+      const xml = cp.execSync("sudo cat /etc/icecast2/icecast.xml").toString('utf8');
       const icecastSettings = JSON.parse(convert.xml2json(xml,{compact: true, spaces: 2, textKey: "text"}));
       config["icecastPort"] = icecastSettings.icecast["listen-socket"].port.text;
 
@@ -97,13 +70,10 @@ try {
       config["icecastPort"] = '9240';
     }
 
-    // hwInfo["addresses"] = [...addrMap.values()];
-
     // Write remaining config values to JSON
     config["pipeAudioCodec"] = 'wav';
     config["streamAudioCodec"] = 'flac';
     config["streamContainer"] = 'ogg';
-    // config["networkAddress"] = hwInfo.addresses[0];
 
     // Write configs JSON to file
     fs.writeFileSync("./hwInfo.json", JSON.stringify(hwInfo, null, 2));
