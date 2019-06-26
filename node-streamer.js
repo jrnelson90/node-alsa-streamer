@@ -1,13 +1,13 @@
 const cardInfo = require('node-alsa-cardinfo');
-const Arecord = require('node-arecord');
+const Arecord = require('./lib/arecord');
 const ffmpeg = require('fluent-ffmpeg');
 const os = require('os');
 const fs = require('fs');
 const cp = require("child_process");
 
 const ifaces = os.networkInterfaces();
-
 let hwInfo;
+let config;
 
 try {
   if (!fs.existsSync("./hwInfo.json")) {
@@ -53,8 +53,6 @@ try {
   console.error(err);
   process.exit(1);
 }
-
-let config;
 
 try {
   if (!fs.existsSync("./config.json")) {
