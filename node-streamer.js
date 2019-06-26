@@ -40,7 +40,7 @@ try {
     hwInfo = Object.create(null);
 
     let cards;
-    cards = cp.execSync("arecord -L | grep :CARD");
+    cards = cp.execSync("arecord -L | grep :CARD").toString('utf8');
     console.info(cards);
 
     hwInfo["addresses"] = [...addrMap.values()];
