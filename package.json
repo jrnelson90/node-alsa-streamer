@@ -17,6 +17,7 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "fluent-ffmpeg": "^2.1.2",
-    "node-alsa-cardinfo": "^1.0.3"
+    "node-alsa-cardinfo": "^1.0.3",
+    "readline-sync": "^1.4.9"
   }
 }

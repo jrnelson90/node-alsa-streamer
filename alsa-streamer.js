@@ -4,6 +4,7 @@ const ffmpeg = require('fluent-ffmpeg');
 const os = require('os');
 const fs = require('fs');
 const cp = require("child_process");
+const readline = require('readline-sync');
 
 const ifaces = os.networkInterfaces();
 let config;
@@ -38,31 +39,63 @@ try {
     let soundCards;
     soundCards = cp.execSync("arecord -L | grep :CARD")
         .toString('utf8').trim().split("\n");
-
-    hwInfo["addresses"] = [...addrMap.values()];
     hwInfo["soundCards"] = soundCards;
-    hwInfo["capture"] = cardInfo.get(hwInfo.soundCards[soundCards.length - 2], cardInfo.CAPTURE);
-
-    fs.writeFileSync("./hwInfo.json", JSON.stringify(hwInfo, null, 2));
 
     config = Object.create(null);
+
     console.info("No previous configuration detected, initiating setup");
 
-    // TODO: Implement preference input logic
+    // Select Audio Card for Input
+    console.info("Select an audio card to use as your input source (usually one starting with \'hw:\'):");
+    soundCards.forEach((card, index) => console.info("\t" + index.toString() + " : " + card));
 
-    // Write configs to JSON
-    config["soundCard"] = hwInfo.soundCards[soundCards.length - 2];
-    config["sampleRate"] = '48000';
-    config["sampleArecordFmt"] = 'S32_LE';
-    config["sampleFfmpegFmt"] = 's32';
-    config["channels"] = '2';
+    let soundCardIndex = readline.question("Enter an option (0 - " + (soundCards.length -1) + "): ");
+    let soundCardSelection = soundCards[soundCardIndex];
+
+    // Select Capture Parameters
+    hwInfo["capture"] = cardInfo.get(soundCardSelection, cardInfo.CAPTURE);
+
+    // Sample Rate
+    console.info("Select sample rate for audio capture:");
+    hwInfo.capture.sampleRates.forEach((rate, index) => console.info("\t" + index.toString() + " : " + rate));
+
+    let sampleRateIndex = readline.question("Enter an option (0 - " + (hwInfo.capture.sampleRates.length -1) + "): ");
+    let sampleRatesSelection = hwInfo.capture.sampleRates[sampleRateIndex];
+
+    // Sample Format
+    console.info("Select sample format for audio capture:");
+    hwInfo.capture.sampleFormats.forEach((format, index) => console.info("\t" + index.toString() + " : " + format));
+
+    let sampleFormatIndex = readline.question("Enter an option (0 - " + (hwInfo.capture.sampleFormats.length -1) + "): ");
+    let sampleFormatSelection = hwInfo.capture.sampleFormats[sampleFormatIndex];
+
+    // Channels
+    console.info("Select number of channels for audio capture:");
+    let channelsSelection = readline.question("Enter an option (1 - " + hwInfo.capture.channels[0] + "): ");
+
+    // TODO: Implement icecast config input logic
+
+    hwInfo["addresses"] = [...addrMap.values()];
+
+    // Write selected config values to JSON
+    config["soundCard"] = soundCardSelection;
+    config["sampleRate"] = sampleRatesSelection;
+    config["sampleArecordFmt"] = sampleFormatSelection;
+    config["channels"] = channelsSelection.toString();
     config["pipeAudioCodec"] = 'wav';
+
+    config["sampleFfmpegFmt"] = sampleFormatSelection.toString().split("_")[0].toLowerCase();
     config["streamAudioCodec"] = 'flac';
     config["streamContainer"] = 'ogg';
-    config["networkAddress"] = hwInfo.addresses[0];
+
     config["icecastMnt"] = '/vinyl';
     config["icecastPswd"] = 'dietpi';
     config["icecastPort"] = '9240';
+
+    config["networkAddress"] = hwInfo.addresses[0];
+
+
+    fs.writeFileSync("./hwInfo.json", JSON.stringify(hwInfo, null, 2));
 
     // Write config JSON to file
     fs.writeFileSync("./config.json", JSON.stringify(config, null, 2));
