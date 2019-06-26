@@ -40,17 +40,8 @@ try {
     hwInfo = Object.create(null);
 
     let cards;
-    cp.exec("arecord -L | grep :CARD", function (err, stdout, stderr) {
-      if(!stderr) {
-        cards = stdout;
-        console.info(cards);
-      } else {
-        console.error(stderr);
-        process.exit(1);
-      }
-      // If an error occurred, err will contain that error object
-      // The output for the command itself is held in stdout and stderr vars
-    });
+    cards = cp.execSync("arecord -L | grep :CARD");
+    console.info(cards);
 
     hwInfo["addresses"] = [...addrMap.values()];
     hwInfo["playback"] = cardInfo.get(cardName, cardInfo.PLAYBACK);
