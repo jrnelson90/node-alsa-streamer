@@ -9,3 +9,6 @@ To date, this has been tested using following Pi audio hats:
 * AudioInjector Stereo (Pi 2 & 3)
 * Fe-Pi Audio (Pi 2 & 3)
 * PiSound (Pi 3)
+
+As this is using Icecast, this is not real-time audio streaming, with usual 2-8 secs of latency 
+depending on the settings used.
