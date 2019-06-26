@@ -10,5 +10,7 @@ To date, this has been tested using following Pi audio hats:
 * Fe-Pi Audio (Pi 2 & 3)
 * PiSound (Pi 3)
 
+It has also been tested on Ubuntu 18.04 x64 laptop using an AT-LP120-USB turntable.
+
 As this is using Icecast, this is not real-time audio streaming, with usual 2-8 secs of latency 
 depending on the settings used.
