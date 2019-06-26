@@ -9,9 +9,6 @@ const ifaces = os.networkInterfaces();
 
 let hwInfo;
 
-// const cardName = "hw:CARD=audioinjectorpi,DEV=0";
-const cardName = "hw:CARD=Audio,DEV=0";
-
 try {
   if (!fs.existsSync("./hwInfo.json")) {
     const addrMap = new Map();
@@ -39,14 +36,14 @@ try {
 
     hwInfo = Object.create(null);
 
-    let cards;
-    cards = cp.execSync("arecord -L | grep :CARD")
+    let soundCards;
+    soundCards = cp.execSync("arecord -L | grep :CARD")
         .toString('utf8').trim().split("\n");
-    console.info(cards);
 
     hwInfo["addresses"] = [...addrMap.values()];
-    hwInfo["playback"] = cardInfo.get(cardName, cardInfo.PLAYBACK);
-    hwInfo["capture"] = cardInfo.get(cardName, cardInfo.CAPTURE);
+    hwInfo["soundCards"] = soundCards;
+    hwInfo["playback"] = cardInfo.get(hwInfo.soundCards[0], cardInfo.PLAYBACK);
+    hwInfo["capture"] = cardInfo.get(hwInfo.soundCards[0], cardInfo.CAPTURE);
 
     fs.writeFileSync("./hwInfo.json", JSON.stringify(hwInfo, null, 2));
   } else {
@@ -67,7 +64,7 @@ try {
     // TODO: Implement preference input logic
 
     // Write configs to JSON
-    config["soundCard"] = cardName;
+    config["soundCard"] = hwInfo.soundCards[0];
     config["sampleRate"] = '48000';
     config["sampleArecordFmt"] = 'S32_LE';
     config["sampleFfmpegFmt"] = 's32';
