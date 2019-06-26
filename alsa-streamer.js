@@ -70,7 +70,7 @@ try {
 
       // Defaults
       config["icecastMnt"] = '/vinyl';
-      config["icecastPswd"] = 'dietpi';
+      config["icecastPswd"] = 'hackme';
       config["icecastPort"] = '9240';
     }
 
