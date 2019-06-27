@@ -5,6 +5,7 @@ Although originally developed to stream an analog source, like a turntable or ca
 via an ADC audio hat on a Raspberry Pi over a local home or office network, this can be used 
 for any mono or stereo analog source on any Linux machine that supports ALSA and Icecast.
 
+## Known Hardware Compatibility
 To date, this has been tested using following Pi audio hats:
 * AudioInjector Stereo (Pi 2 & 3)
 * Fe-Pi Audio (Pi 2 & 3)
