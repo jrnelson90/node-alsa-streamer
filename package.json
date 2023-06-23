@@ -17,7 +17,7 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "fluent-ffmpeg": "^2.1.2",
-    "internal-ip": "^4.3.0",
+    "internal-ip": "^8.0.0",
     "node-alsa-cardinfo": "^1.0.3",
     "readline-sync": "^1.4.9",
     "xml-js": "^1.6.11"
